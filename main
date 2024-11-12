@@ -19,14 +19,16 @@ float prevAccelX = 0;
 float prevAccelY = 0;
 float prevAccelZ = 0;
 int stepCount = 0;
-float stepThreshold = 1.0; // Adjust this threshold based on your needs
+float stepThreshold = 2.0; // Adjust this threshold based on your needs
 
 void countSteps(float accelX, float accelY, float accelZ) {
   // Calculate the magnitude of the acceleration vector
   float magnitude = sqrt(accelX * accelX + accelY * accelY + accelZ * accelZ);
 
+  Serial.print(magnitude);
+
   // Check if the magnitude exceeds the step threshold
-  if (magnitude > stepThreshold && prevAccelX < stepThreshold && prevAccelY < stepThreshold && prevAccelZ < stepThreshold) {
+  if (magnitude > stepThreshold) {
     stepCount++;
   }
 
@@ -64,7 +66,7 @@ void loop() {
     heartRate = 0;
   }
 
-  //countSteps(event.acceleration.x, event.acceleration.y, event.acceleration.z);
+  countSteps(event.acceleration.x, event.acceleration.y, event.acceleration.z);
 
 
   // Clear the display buffer
