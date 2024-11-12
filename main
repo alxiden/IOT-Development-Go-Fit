@@ -12,7 +12,7 @@ Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified(12345);
 const int heartRatePin = A0;
 const int buzzerPin = 3;
 int heartRateThreshold = 1000; // Set your threshold here
-int noiseThreshold = 50; // Threshold to filter out noise
+int noiseThreshold = 10; // Threshold to filter out noise
 
 void setup() {
   Serial.begin(9600);
@@ -74,9 +74,9 @@ void loop() {
 
   // Check if the heart rate exceeds the threshold and activate the buzzer if necessary
   if (heartRate > heartRateThreshold) {
-    //digitalWrite(buzzerPin, HIGH);
+    digitalWrite(buzzerPin, HIGH);
   } else {
-    //digitalWrite(buzzerPin, LOW);
+    digitalWrite(buzzerPin, LOW);
   }
 
   // Add a delay to reduce the frequency of display updates
