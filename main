@@ -1,0 +1,62 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
+
+// Initialize the LCD
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+// Initialize the MPU6050
+Adafruit_MPU6050 mpu;
+
+void setup() {
+  // Initialize the LCD
+  lcd.begin();
+  lcd.backlight();
+
+  // Initialize the MPU6050
+  if (!mpu.begin()) {
+    lcd.clear();
+    lcd.print("MPU6050 not found");
+    while (1);
+  }
+
+  // Initialize the Pulse Sensor
+  pinMode(A0, INPUT);
+
+  // Set up the buzzer
+  pinMode(12, OUTPUT);
+}
+
+void loop() {
+  // Read the pulse sensor
+  int pulseValue = analogRead(A0);
+
+  // Display the pulse value on the LCD
+  lcd.setCursor(0, 0);
+  lcd.print("Pulse: ");
+  lcd.print(pulseValue);
+  lcd.print(" BPM");
+
+  // Check if the pulse rate is too high
+  if (pulseValue > 600) {
+    digitalWrite(12, HIGH); // Turn on the buzzer
+  } else {
+    digitalWrite(12, LOW); // Turn off the buzzer
+  }
+
+  // Read the accelerometer data
+  sensors_event_t a, g, temp;
+  mpu.getEvent(&a, &g, &temp);
+
+  // Display the accelerometer data on the LCD
+  lcd.setCursor(0, 1);
+  lcd.print("Accel: ");
+  lcd.print(a.accel.x, 1);
+  lcd.print(" ");
+  lcd.print(a.accel.y, 1);
+  lcd.print(" ");
+  lcd.print(a.accel.z, 1);
+
+  delay(100);
+}
