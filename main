@@ -14,6 +14,29 @@ const int buzzerPin = 3;
 int heartRateThreshold = 1000; // Set your threshold here
 int noiseThreshold = 10; // Threshold to filter out noise
 
+// Global variables for step counting
+float prevAccelX = 0;
+float prevAccelY = 0;
+float prevAccelZ = 0;
+int stepCount = 0;
+float stepThreshold = 1.0; // Adjust this threshold based on your needs
+
+void countSteps(float accelX, float accelY, float accelZ) {
+  // Calculate the magnitude of the acceleration vector
+  float magnitude = sqrt(accelX * accelX + accelY * accelY + accelZ * accelZ);
+
+  // Check if the magnitude exceeds the step threshold
+  if (magnitude > stepThreshold && prevAccelX < stepThreshold && prevAccelY < stepThreshold && prevAccelZ < stepThreshold) {
+    stepCount++;
+  }
+
+  // Update previous acceleration values
+  prevAccelX = accelX;
+  prevAccelY = accelY;
+  prevAccelZ = accelZ;
+}
+
+
 void setup() {
   Serial.begin(9600);
   pinMode(buzzerPin, OUTPUT);
@@ -41,6 +64,9 @@ void loop() {
     heartRate = 0;
   }
 
+  //countSteps(event.acceleration.x, event.acceleration.y, event.acceleration.z);
+
+
   // Clear the display buffer
   u8g2.clearBuffer();
 
@@ -55,11 +81,12 @@ void loop() {
 
   // Display accelerometer data
   u8g2.setCursor(0, 30);
-  u8g2.print("X: "); u8g2.print(event.acceleration.x); u8g2.print(" m/s^2");
-  u8g2.setCursor(0, 40);
-  u8g2.print("Y: "); u8g2.print(event.acceleration.y); u8g2.print(" m/s^2");
-  u8g2.setCursor(0, 50);
-  u8g2.print("Z: "); u8g2.print(event.acceleration.z); u8g2.print(" m/s^2");
+  u8g2.print("Steps: "); u8g2.print(stepCount);
+  //u8g2.print("X: "); u8g2.print(event.acceleration.x); u8g2.print(" m/s^2");
+  //u8g2.setCursor(0, 40);
+  //u8g2.print("Y: "); u8g2.print(event.acceleration.y); u8g2.print(" m/s^2");
+  //u8g2.setCursor(0, 50);
+  //u8g2.print("Z: "); u8g2.print(event.acceleration.z); u8g2.print(" m/s^2");
 
   // Update the display with the new data
   u8g2.sendBuffer();
@@ -82,3 +109,4 @@ void loop() {
   // Add a delay to reduce the frequency of display updates
   delay(1000);
 }
+
