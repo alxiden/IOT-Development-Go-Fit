@@ -1,62 +1,86 @@
 #include <Wire.h>
-#include <LiquidCrystal_I2C.h>
-#include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
+#include <Adafruit_ADXL345_U.h>
+#include <LiquidCrystal_I2C.h>
 
 // Initialize the LCD
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-// Initialize the MPU6050
-Adafruit_MPU6050 mpu;
+// Initialize the ADXL345
+Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified(12345);
 
 void setup() {
+  // Initialize serial communication for debugging
+  Serial.begin(9600);
+
   // Initialize the LCD
   lcd.begin();
   lcd.backlight();
+  lcd.clear();
 
-  // Initialize the MPU6050
-  if (!mpu.begin()) {
+  // Initialize the ADXL345
+  if (!accel.begin()) {
     lcd.clear();
-    lcd.print("MPU6050 not found");
+    lcd.print("ADXL345 not found");
+    Serial.println("ADXL345 not found");
     while (1);
   }
-
+  
+  accel.setRange(ADXL345_RANGE_16_G); // Set the range to +/- 16G
+  
   // Initialize the Pulse Sensor
   pinMode(A0, INPUT);
-
+  
   // Set up the buzzer
   pinMode(12, OUTPUT);
+
+  // Debugging message
+  Serial.println("Setup complete");
 }
 
 void loop() {
   // Read the pulse sensor
   int pulseValue = analogRead(A0);
-
+  
   // Display the pulse value on the LCD
+  lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Pulse: ");
   lcd.print(pulseValue);
   lcd.print(" BPM");
 
+  // Debugging message
+  Serial.print("Pulse: ");
+  Serial.print(pulseValue);
+  Serial.println(" BPM");
+  
   // Check if the pulse rate is too high
   if (pulseValue > 600) {
     digitalWrite(12, HIGH); // Turn on the buzzer
   } else {
     digitalWrite(12, LOW); // Turn off the buzzer
   }
-
+  
   // Read the accelerometer data
-  sensors_event_t a, g, temp;
-  mpu.getEvent(&a, &g, &temp);
-
+  sensors_event_t event; 
+  accel.getEvent(&event);
+  
   // Display the accelerometer data on the LCD
   lcd.setCursor(0, 1);
   lcd.print("Accel: ");
-  lcd.print(a.accel.x, 1);
+  lcd.print(event.acceleration.x, 1);
   lcd.print(" ");
-  lcd.print(a.accel.y, 1);
+  lcd.print(event.acceleration.y, 1);
   lcd.print(" ");
-  lcd.print(a.accel.z, 1);
+  lcd.print(event.acceleration.z, 1);
 
-  delay(100);
+  // Debugging message
+  Serial.print("Accel X: ");
+  Serial.print(event.acceleration.x, 1);
+  Serial.print(" Y: ");
+  Serial.print(event.acceleration.y, 1);
+  Serial.print(" Z: ");
+  Serial.println(event.acceleration.z, 1);
+  
+  delay(1000); // Increase delay to make the display updates more noticeable
 }
