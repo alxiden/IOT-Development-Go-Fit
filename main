@@ -1,86 +1,84 @@
 #include <Wire.h>
+#include <U8g2lib.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_ADXL345_U.h>
-#include <LiquidCrystal_I2C.h>
 
-// Initialize the LCD
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+// Initialize the U8g2 library for the SH1106 OLED display with I2C communication
+U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 
 // Initialize the ADXL345
 Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified(12345);
 
-void setup() {
-  // Initialize serial communication for debugging
-  Serial.begin(9600);
+const int heartRatePin = A0;
+const int buzzerPin = 3;
+int heartRateThreshold = 1000; // Set your threshold here
+int noiseThreshold = 50; // Threshold to filter out noise
 
-  // Initialize the LCD
-  lcd.init();  // Use lcd.init() instead of lcd.begin()
-  lcd.backlight();
-  lcd.clear();
+void setup() {
+  Serial.begin(9600);
+  pinMode(buzzerPin, OUTPUT);
+
+  // Initialize the U8g2 library
+  u8g2.begin();
 
   // Initialize the ADXL345
   if (!accel.begin()) {
-    lcd.clear();
-    lcd.print("ADXL345 not found");
-    Serial.println("ADXL345 not found");
+    Serial.println("No ADXL345 detected");
     while (1);
   }
-  
-  accel.setRange(ADXL345_RANGE_16_G); // Set the range to +/- 16G
-  
-  // Initialize the Pulse Sensor
-  pinMode(A0, INPUT);
-  
-  // Set up the buzzer
-  pinMode(12, OUTPUT);
-
-  // Debugging message
-  Serial.println("Setup complete");
+  accel.setRange(ADXL345_RANGE_16_G);
 }
 
 void loop() {
-  // Read the pulse sensor
-  int pulseValue = analogRead(A0);
-  
-  // Display the pulse value on the LCD
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Pulse: ");
-  lcd.print(pulseValue);
-  lcd.print(" BPM");
-
-  // Debugging message
-  Serial.print("Pulse: ");
-  Serial.print(pulseValue);
-  Serial.println(" BPM");
-  
-  // Check if the pulse rate is too high
-  if (pulseValue > 600) {
-    digitalWrite(12, HIGH); // Turn on the buzzer
-  } else {
-    digitalWrite(12, LOW); // Turn off the buzzer
-  }
-  
-  // Read the accelerometer data
-  sensors_event_t event; 
+  sensors_event_t event;
   accel.getEvent(&event);
-  
-  // Display the accelerometer data on the LCD
-  lcd.setCursor(0, 1);
-  lcd.print("Accel: ");
-  lcd.print(event.acceleration.x, 1);
-  lcd.print(" ");
-  lcd.print(event.acceleration.y, 1);
-  lcd.print(" ");
-  lcd.print(event.acceleration.z, 1);
 
-  // Debugging message
-  Serial.print("Accel X: ");
-  Serial.print(event.acceleration.x, 1);
-  Serial.print(" Y: ");
-  Serial.print(event.acceleration.y, 1);
-  Serial.print(" Z: ");
-  Serial.println(event.acceleration.z, 1);
-  
-  delay(1000); // Increase delay to make the display updates more noticeable
+  int heartRate = analogRead(heartRatePin);
+  heartRate = map(heartRate, 0, 1023, 0, 200); // Adjust mapping as needed
+
+  // Apply noise threshold
+  if (heartRate < noiseThreshold) {
+    heartRate = 0;
+  }
+
+  // Clear the display buffer
+  u8g2.clearBuffer();
+
+  // Set text size and color
+  u8g2.setFont(u8g2_font_ncenB08_tr); // Choose a suitable font
+
+  // Display heart rate
+  u8g2.setCursor(0, 10);
+  u8g2.print("Heart Rate: ");
+  u8g2.print(heartRate);
+  u8g2.print(" bpm");
+
+  // Display accelerometer data
+  u8g2.setCursor(0, 30);
+  u8g2.print("X: "); u8g2.print(event.acceleration.x); u8g2.print(" m/s^2");
+  u8g2.setCursor(0, 40);
+  u8g2.print("Y: "); u8g2.print(event.acceleration.y); u8g2.print(" m/s^2");
+  u8g2.setCursor(0, 50);
+  u8g2.print("Z: "); u8g2.print(event.acceleration.z); u8g2.print(" m/s^2");
+
+  // Update the display with the new data
+  u8g2.sendBuffer();
+
+  // Print the same data to the Serial Monitor
+  Serial.print("Heart Rate: ");
+  Serial.print(heartRate);
+  Serial.println(" bpm");
+  Serial.print("X: "); Serial.print(event.acceleration.x); Serial.println(" m/s^2");
+  Serial.print("Y: "); Serial.print(event.acceleration.y); Serial.println(" m/s^2");
+  Serial.print("Z: "); Serial.print(event.acceleration.z); Serial.println(" m/s^2");
+
+  // Check if the heart rate exceeds the threshold and activate the buzzer if necessary
+  if (heartRate > heartRateThreshold) {
+    //digitalWrite(buzzerPin, HIGH);
+  } else {
+    //digitalWrite(buzzerPin, LOW);
+  }
+
+  // Add a delay to reduce the frequency of display updates
+  delay(1000);
 }
