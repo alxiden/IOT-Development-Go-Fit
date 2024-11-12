@@ -14,7 +14,7 @@ void setup() {
   Serial.begin(9600);
 
   // Initialize the LCD
-  lcd.begin();
+  lcd.init();  // Use lcd.init() instead of lcd.begin()
   lcd.backlight();
   lcd.clear();
 
