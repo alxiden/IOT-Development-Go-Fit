@@ -19,13 +19,14 @@ float prevAccelX = 0;
 float prevAccelY = 0;
 float prevAccelZ = 0;
 int stepCount = 0;
-float stepThreshold = 2.0; // Adjust this threshold based on your needs
+//int stepCounts = 0;
+float stepThreshold = 12.0; // Adjust this threshold based on your needs
 
 void countSteps(float accelX, float accelY, float accelZ) {
   // Calculate the magnitude of the acceleration vector
   float magnitude = sqrt(accelX * accelX + accelY * accelY + accelZ * accelZ);
 
-  Serial.print(magnitude);
+  //stepCount = magnitude;
 
   // Check if the magnitude exceeds the step threshold
   if (magnitude > stepThreshold) {
@@ -86,6 +87,7 @@ void loop() {
   u8g2.print("Steps: "); u8g2.print(stepCount);
   //u8g2.print("X: "); u8g2.print(event.acceleration.x); u8g2.print(" m/s^2");
   //u8g2.setCursor(0, 40);
+  // u8g2.print("Steps: "); u8g2.print(stepCounts);
   //u8g2.print("Y: "); u8g2.print(event.acceleration.y); u8g2.print(" m/s^2");
   //u8g2.setCursor(0, 50);
   //u8g2.print("Z: "); u8g2.print(event.acceleration.z); u8g2.print(" m/s^2");
